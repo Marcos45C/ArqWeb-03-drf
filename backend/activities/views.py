@@ -24,7 +24,7 @@ ACTIVITY_NOT_FOUND = {
     "message": "La actividad no existe.",
 }
 INVALID_IDENTITY = {
-    "code": "invalid_participant",
+    "code": "authentication_required",
     "message": "Falta el header X-Participant-ID o no identifica a un participante.",
 }
 CAPACITY_EXHAUSTED = {
@@ -106,7 +106,7 @@ class ActivityDetailView(APIView):
         parameters=[ACTIVITY_ID_PARAMETER],
         responses={
             200: ActivityOutSerializer,
-            400: ErrorOutSerializer,
+            401: ErrorOutSerializer,
             404: ErrorOutSerializer,
             405: METHOD_NOT_ALLOWED,
         },
@@ -139,14 +139,14 @@ class EnrollmentListView(APIView):
         parameters=[PARTICIPANT_HEADER],
         responses={
             200: EnrollmentOutSerializer(many=True),
-            400: ErrorOutSerializer,
+            401: ErrorOutSerializer,
             405: METHOD_NOT_ALLOWED,
         },
     )
     def get(self, request):
         participant = current_participant(request.headers.get("X-Participant-ID"))
         if participant is None:
-            return Response(INVALID_IDENTITY, status=status.HTTP_400_BAD_REQUEST)
+            return Response(INVALID_IDENTITY, status=status.HTTP_401_UNAUTHORIZED)
 
         enrollments = Enrollment.objects.filter(participant=participant).order_by(
             "enrolled_at"
@@ -172,7 +172,7 @@ class EnrollmentDetailView(APIView):
         responses={
             200: EnrollmentOutSerializer,
             201: EnrollmentOutSerializer,
-            400: ErrorOutSerializer,
+            401: ErrorOutSerializer,
             404: ErrorOutSerializer,
             409: ErrorOutSerializer,
             405: METHOD_NOT_ALLOWED,
@@ -185,7 +185,7 @@ class EnrollmentDetailView(APIView):
 
         participant = self.get_participant(request)
         if participant is None:
-            return Response(INVALID_IDENTITY, status=status.HTTP_400_BAD_REQUEST)
+            return Response(INVALID_IDENTITY, status=status.HTTP_401_UNAUTHORIZED)
         if request.body:
             return Response(INVALID_REQUEST, status=status.HTTP_400_BAD_REQUEST)
 
@@ -245,7 +245,7 @@ class EnrollmentDetailView(APIView):
 
         participant = self.get_participant(request)
         if participant is None:
-            return Response(INVALID_IDENTITY, status=status.HTTP_400_BAD_REQUEST)
+            return Response(INVALID_IDENTITY, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
             activity = Activity.objects.get(id=activity_id)
