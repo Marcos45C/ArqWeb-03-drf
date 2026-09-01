@@ -24,9 +24,9 @@ class EnrollmentOutSerializer(serializers.Serializer):
     activity_id = serializers.UUIDField(
         help_text="Actividad en la que se inscribió."
     )
-    participant_id = serializers.UUIDField(
-        help_text="Participante de la inscripción."
-    )
+    # participant_id = serializers.UUIDField(
+    #     help_text="Participante de la inscripción."
+    # )
     enrolled_at = serializers.DateTimeField(
         help_text="Fecha y hora de inscripción en formato ISO 8601."
     )

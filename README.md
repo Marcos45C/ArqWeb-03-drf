@@ -14,7 +14,7 @@ El repositorio comienza con dos aplicaciones independientes:
 ```bash
 cd backend
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate // .\.venv\Scripts\Activate
 python -m pip install -r requirements.txt
 python manage.py migrate
 python manage.py seed_activities
