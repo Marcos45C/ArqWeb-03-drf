@@ -13,11 +13,12 @@ from rest_framework.views import APIView
 
 from .models import Activity, Enrollment, Participant
 from .serializers import (
+    ActivityAvailabilityOutSerializer,
     ActivityOutSerializer,
+    ActivityV2OutSerializer,
     EnrollmentOutSerializer,
     ErrorOutSerializer,
 )
-
 
 ACTIVITY_NOT_FOUND = {
     "code": "activity_not_found",
@@ -79,6 +80,8 @@ def parse_activity_id(activity_id):
         return None
 
 class ActivityListView(APIView):
+    serializer_class = ActivityOutSerializer
+
     @extend_schema(
         operation_id="listActivities",
         summary="Listar actividades",
@@ -89,15 +92,23 @@ class ActivityListView(APIView):
             405: METHOD_NOT_ALLOWED,
         },
     )
+    # def get(self, request):
+    #     activities = Activity.objects.annotate(
+    #         enrolled_count=Count("enrollments")
+    #     ).order_by("starts_at")
+    #     serializer = ActivityOutSerializer(activities, many=True)
+    #     return Response(serializer.data)
     def get(self, request):
         activities = Activity.objects.annotate(
             enrolled_count=Count("enrollments")
         ).order_by("starts_at")
-        serializer = ActivityOutSerializer(activities, many=True)
+        serializer = self.serializer_class(activities, many=True)  ##cambio
         return Response(serializer.data)
 
 
 class ActivityDetailView(APIView):
+    serializer_class = ActivityOutSerializer
+
     @extend_schema(
         operation_id="getActivity",
         summary="Consultar una actividad",
@@ -123,8 +134,45 @@ class ActivityDetailView(APIView):
         except Activity.DoesNotExist:
             return Response(ACTIVITY_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
 
-        return Response(ActivityOutSerializer(activity).data)
+        return Response(self.serializer_class(activity).data)##cambio
+class ActivityListV2View(ActivityListView):
+    serializer_class = ActivityV2OutSerializer
 
+    @extend_schema(
+        operation_id="listActivitiesV2",
+        summary="Listar actividades (v2)",
+        description=(
+            "Devuelve todas las actividades con la representación v2: "
+            "capacity y available_slots agrupados en `availability`."
+        ),
+        tags=["Activities"],
+        responses={
+            200: ActivityV2OutSerializer(many=True),
+            405: METHOD_NOT_ALLOWED,
+        },
+    )
+    def get(self, request):
+        return super().get(request)
+
+
+class ActivityDetailV2View(ActivityDetailView):
+    serializer_class = ActivityV2OutSerializer
+
+    @extend_schema(
+        operation_id="getActivityV2",
+        summary="Consultar una actividad (v2)",
+        description="Recupera una actividad con la representación v2 (availability anidada).",
+        tags=["Activities"],
+        parameters=[ACTIVITY_ID_PARAMETER],
+        responses={
+            200: ActivityV2OutSerializer,
+            400: ErrorOutSerializer,
+            404: ErrorOutSerializer,
+            405: METHOD_NOT_ALLOWED,
+        },
+    )
+    def get(self, request, activity_id):
+        return super().get(request, activity_id)
 
 class EnrollmentListView(APIView):
     @extend_schema(
