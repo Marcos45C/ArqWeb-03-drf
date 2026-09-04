@@ -21,6 +21,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "config.middleware.CorrelationIdMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -79,4 +80,33 @@ SPECTACULAR_SETTINGS = {
     ),
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+}
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters":{
+        "json": {
+            "()": "config.logging.JsonFormatter",
+        },
+    },
+    "handlers":{
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": "django_info.log",
+            "formatter": "json",
+        },
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "json",
+        },
+    },
+    "loggers":{
+        "":{ ##el valor vacio captura todos los modulos de tu proyecto
+            "handlers": ["file", "console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+    },
 }

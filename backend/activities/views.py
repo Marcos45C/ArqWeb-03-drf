@@ -20,6 +20,10 @@ from .serializers import (
     ErrorOutSerializer,
 )
 
+import logging
+
+logger = logging.getLogger("app.activities")
+
 ACTIVITY_NOT_FOUND = {
     "code": "activity_not_found",
     "message": "La actividad no existe.",
@@ -99,6 +103,15 @@ class ActivityListView(APIView):
     #     serializer = ActivityOutSerializer(activities, many=True)
     #     return Response(serializer.data)
     def get(self, request):
+        logger.info(
+        "Listando actividades",
+        extra={
+            "method": request.method,
+            "path": request.path,
+            "event": "list_activities",
+            "correlation_id": getattr(request, "correlation_id", None)
+            }     
+        )
         activities = Activity.objects.annotate(
             enrolled_count=Count("enrollments")
         ).order_by("starts_at")
@@ -225,10 +238,20 @@ class EnrollmentDetailView(APIView):
             409: ErrorOutSerializer,
             405: METHOD_NOT_ALLOWED,
         },
-    )
+    ) 
     def put(self, request, activity_id):
         activity_id = parse_activity_id(activity_id)
         if activity_id is None:
+            logger.info(
+                "activity_id=%s is invalid", activity_id,
+                extra={
+                    "event": "request_invalid_request",
+                    "result":"invalid_activity_id",
+                    "method": request.method,
+                    "path": request.path,
+                    "correlation_id": request.correlation_id,
+                    },
+            )
             return Response(REQUEST_NOT_VALID, status=status.HTTP_400_BAD_REQUEST)
 
         participant = self.get_participant(request)
