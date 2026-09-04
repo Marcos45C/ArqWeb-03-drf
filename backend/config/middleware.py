@@ -41,7 +41,7 @@ class CorrelationIdMiddleware:
                         "request_completed",
                         extra={
                             "event": "request_completed",
-                            "result":"str(response.status_code)",
+                            "result": response.status_code,
                             **common_fields,  
                             },
                 )
