@@ -246,7 +246,7 @@ class EnrollmentDetailView(APIView):
                 "activity_id=%s is invalid", activity_id,
                 extra={
                     "event": "request_invalid_request",
-                    "result":"invalid_activity_id",
+                    "result": "invalid_activity_id",
                     "method": request.method,
                     "path": request.path,
                     "correlation_id": request.correlation_id,
@@ -269,14 +269,38 @@ class EnrollmentDetailView(APIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
+            common_fields = {
+                "method": request.method,
+                "path": request.path,
+                "correlation_id": request.correlation_id,
+                "activity_id": str(activity.id),
+                "participant_id": str(participant.id),
+            }
+
             enrollment = Enrollment.objects.filter(
                 participant=participant,
                 activity=activity,
             ).first()
             if enrollment is not None:
+                logger.info(
+                    "enrollment_reused",
+                    extra={
+                        "event": "enrollment_reused",
+                        "result": "reused",
+                        **common_fields,
+                    },
+                )
                 return Response(EnrollmentOutSerializer(enrollment).data)
 
             if activity.enrollments.count() >= activity.capacity:
+                logger.warning(
+                    "enrollment_rejected",
+                    extra={
+                        "event": "enrollment_rejected",
+                        "result": "capacity_exhausted",
+                        **common_fields,
+                    },
+                )
                 return Response(
                     CAPACITY_EXHAUSTED,
                     status=status.HTTP_409_CONFLICT,
@@ -286,11 +310,19 @@ class EnrollmentDetailView(APIView):
                 participant=participant,
                 activity=activity,
             )
+            logger.info(
+                "enrollment_created",
+                extra={
+                    "event": "enrollment_created",
+                    "result": "created",
+                    **common_fields,
+                },
+            )
 
         return Response(
             EnrollmentOutSerializer(enrollment).data,
             status=status.HTTP_201_CREATED,
-        )
+    )
 
     @extend_schema(
         operation_id="deleteMyEnrollment",
@@ -309,6 +341,7 @@ class EnrollmentDetailView(APIView):
             405: METHOD_NOT_ALLOWED,
         },
     )
+    
     def delete(self, request, activity_id):
         activity_id = parse_activity_id(activity_id)
         if activity_id is None:
@@ -323,8 +356,21 @@ class EnrollmentDetailView(APIView):
         except Activity.DoesNotExist:
             return Response(ACTIVITY_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
 
-        Enrollment.objects.filter(
+        deleted_count, _ = Enrollment.objects.filter(
             participant=participant,
             activity=activity,
         ).delete()
+
+        logger.info(
+            "enrollment_cancelled",
+            extra={
+                "event": "enrollment_cancelled",
+                "result": "cancelled" if deleted_count else "not_found",
+                "method": request.method,
+                "path": request.path,
+                "correlation_id": request.correlation_id,
+                "activity_id": str(activity.id),
+                "participant_id": str(participant.id),
+            },
+        )
         return Response(status=status.HTTP_204_NO_CONTENT)

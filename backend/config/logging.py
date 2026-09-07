@@ -9,6 +9,9 @@ class JsonFormatter(logging.Formatter):
         "method",
         "path",
         "result",
+        "activity_id",   ##para saber porq la respuesta cambia de 201 a 200 sin crear otra inscripcion
+        "participant_id",
+        
         )
     
     def format(self, record):
