@@ -76,6 +76,11 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
+    "APPEND_COMPONENTS": {
+    "securitySchemes": {
+        "bearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
+    },
+    },
     "TITLE": "API de actividades e inscripciones",
     "DESCRIPTION": (
         "Primera versión funcional de la API de la Actividad 1. "
@@ -114,3 +119,12 @@ LOGGING = {
         },
     },
 }
+JWT_SIGNING_KEY = os.environ.get(
+    "JWT_SIGNING_KEY", "dev-only-signing-key-change-me-in-production-32b"
+)
+JWT_ISSUER = "untdf-arqweb"
+ACCESS_SECONDS = int(os.environ.get("ACCESS_SECONDS", "60")) #me gana la ansiedad asi que 15 seg
+REFRESH_SECONDS = int(os.environ.get("REFRESH_SECONDS", "604800"))
+REFRESH_COOKIE_NAME = "refresh_token"
+REFRESH_COOKIE_PATH = "/api/v1/auth/"
+REFRESH_COOKIE_SECURE = os.environ.get("REFRESH_COOKIE_SECURE", "0") == "1"

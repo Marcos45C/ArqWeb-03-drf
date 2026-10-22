@@ -26,6 +26,7 @@ services:
       POSTGRES_PASSWORD: activities
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:-dev-only-signing-key-change-me-in-production-32b}
     depends_on:
       db:
         condition: service_healthy
