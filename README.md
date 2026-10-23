@@ -9,6 +9,13 @@ El repositorio contiene dos aplicaciones:
 
 ## Inicio rápido (desde un clon limpio)
 
+```bash
+git clone https://github.com/Marcos45C/ArqWeb-03-drf.git
+
+```
+## Y por la rama hito2Act
+
+
 | | Modo desarrollo | Modo objetivo |
 |---|---|---|
 | Frontend | Vite (`pnpm dev`, recarga en caliente) | Build estático servido por Nginx |
