@@ -1,0 +1,6 @@
+.notice { padding: .6rem .9rem; border: 1px solid #e1c89d; background: #fff6df; border-radius: 8px; color: #3b2f12; }
+.login-form { display: grid; gap: .8rem; max-width: 22rem; margin: 1rem 0; }
+.login-form label { display: grid; gap: .3rem; font-weight: 600; }
+.login-form input { padding: .5rem; }
+.session-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.hint { font-size: .85rem; opacity: .8; }
