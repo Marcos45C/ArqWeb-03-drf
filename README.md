@@ -80,21 +80,6 @@ ACCESS_SECONDS=5 docker compose up -d
 
 ## Arquitectura
 
-```mermaid
-flowchart LR
-    B["Navegador<br/>React con el access en memoria"]
-    subgraph Compose["Docker Compose - modo objetivo"]
-        N["Nginx :80<br/>único punto de entrada"]
-        S["Build de React<br/>volumen frontend_dist"]
-        G["Gunicorn + Django<br/>valida la identidad con el JWT"]
-        D[("PostgreSQL<br/>volumen pgdata_prod")]
-    end
-    B -->|"GET /"| N
-    N -->|"archivos estáticos"| S
-    B -->|"/api/* con Authorization Bearer<br/>y cookie refresh solo en /api/v1/auth/*"| N
-    N -->|"proxy_pass /api/*"| G
-    G -->|"usuarios, participantes,<br/>inscripciones y hash del refresh"| D
-```
 
 - **Dónde entran las solicitudes:** únicamente por Nginx (`:80`). El navegador no conoce el backend ni la base. En modo desarrollo cumple ese papel el proxy de Vite.
 - **Dónde se valida la identidad:** en Django. Cada ruta protegida verifica la firma, el vencimiento y los claims del access JWT y obtiene de ahí al participante. Nginx solo reenvía las cabeceras `Authorization` y `Cookie`.
@@ -105,33 +90,6 @@ flowchart LR
 
 ### Flujo
 
-```mermaid
-sequenceDiagram
-    participant R as React (navegador)
-    participant N as Nginx
-    participant A as Django (Gunicorn)
-    participant D as PostgreSQL
-    R->>N: POST /api/v1/auth/login con email y contraseña
-    N->>A: reenvía
-    A->>D: verifica la contraseña y guarda el hash del refresh
-    A-->>R: 200 con el access JWT y Set-Cookie del refresh (HttpOnly)
-    R->>N: GET /api/v1/me/enrollments con Authorization Bearer
-    N->>A: reenvía
-    A->>A: valida firma, vencimiento y claims del JWT
-    A->>D: consulta las inscripciones del participante
-    A-->>R: 200
-    Note over R,A: pasan 60 segundos y el access vence
-    R->>N: GET /api/v1/me/enrollments con el Bearer vencido
-    A-->>R: 401 authentication_required
-    R->>N: POST /api/v1/auth/refresh con la cookie
-    A->>D: consume el refresh (un solo uso) y crea uno nuevo
-    A-->>R: 200 con un access nuevo y una cookie nueva
-    R->>N: reintenta la operación (una sola vez)
-    A-->>R: 200
-    R->>N: POST /api/v1/auth/logout con la cookie
-    A->>D: revoca el refresh
-    A-->>R: 204 y se borra la cookie
-```
 
 ### Credenciales y dónde viven
 
@@ -363,8 +321,3 @@ Ejemplo de una interacción completa:
 {"timestamp": "2026-08-24T13:40:12-03:00", "level": "info", "event": "enrollment_created", "correlation_id": "demo-42", "method": "PUT", "path": "/api/v2/me/enrollments/82ca...", "result": "created", "activity_id": "82ca...", "participant_id": "a3d8c92e-..."}
 {"timestamp": "2026-08-24T13:40:12-03:00", "level": "info", "event": "request_completed", "correlation_id": "demo-42", "method": "PUT", "path": "/api/v2/me/enrollments/82ca...", "result": 201}
 ```
-## Persistencia
-
-Backend y frontend no tienen estado: todo el estado observable vive en PostgreSQL, en un volumen nombrado (`pgdata` en desarrollo, `pgdata_prod` en el modo objetivo). `docker compose down` conserva ese volumen y los datos sobreviven; `docker compose down -v` lo destruye y el próximo arranque reconstruye el esquema y los datos de muestra desde cero con `migrate` + `seed_activities`. Cualquier inscripción creada a mano se pierde, porque no forma parte del seed.
-
-Al inscribir, se agrega una fila a `activities_enrollment` que referencia al participante y a la actividad. Al cancelar, se elimina esa fila. La tabla `activities_activity` no cambia: `available_slots` se calcula restando a `capacity` la cantidad de inscripciones persistidas. La restricción única sobre `(participant, activity)` evita inscripciones duplicadas. Los refresh tokens se guardan en `activities_refreshtoken` (solo su hash).
