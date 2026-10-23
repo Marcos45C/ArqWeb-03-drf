@@ -13,7 +13,7 @@ El repositorio contiene dos aplicaciones:
 git clone https://github.com/Marcos45C/ArqWeb-03-drf.git
 
 ```
-## Y por la rama hito2Act
+### Y poner la rama llamada "hito2Act"
 
 
 | | Modo desarrollo | Modo objetivo |
