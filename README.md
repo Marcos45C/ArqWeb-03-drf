@@ -15,15 +15,6 @@ git clone https://github.com/Marcos45C/ArqWeb-03-drf.git
 ```
 ### Y poner la rama llamada "hito2Act"
 
-
-| | Modo desarrollo | Modo objetivo |
-|---|---|---|
-| Frontend | Vite (`pnpm dev`, recarga en caliente) | Build estático servido por Nginx |
-| Backend | `runserver` (recarga automática) | Gunicorn |
-| Base de datos | PostgreSQL en Docker | PostgreSQL en Docker, volumen propio |
-| Punto de entrada | Dos puertos: `:5173` (frontend) y `:8000` (API) | Un solo puerto: `:80` (Nginx) |
-| Archivo | `compose.yaml` | `compose.prod.yaml` |
-
 ### Modo desarrollo
 
 ```bash
