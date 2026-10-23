@@ -77,6 +77,7 @@ ACCESS_SECONDS=5 docker compose up -d
 ```
 
 ## Arquitectura
+<img width="1217" height="484" alt="diagramaArq" src="https://github.com/user-attachments/assets/2babb3ff-e258-436b-ba22-7b585e2159e9" />
 
 
 - **Dónde entran las solicitudes:** únicamente por Nginx (`:80`). El navegador no conoce el backend ni la base. En modo desarrollo cumple ese papel el proxy de Vite.
