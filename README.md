@@ -88,6 +88,7 @@ ACCESS_SECONDS=5 docker compose up -d
 ## Autenticación
 
 ### Flujo
+<img width="5088" height="7132" alt="imagen" src="https://github.com/user-attachments/assets/cfa3d79c-ab49-4363-a48f-fd4d72097ad7" />
 
 
 ### Credenciales y dónde viven
